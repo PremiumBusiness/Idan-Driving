@@ -125,8 +125,8 @@
                             <div className="absolute inset-0 bg-gradient-to-tr from-blue-400 to-indigo-400 rounded-full opacity-25 blur-xl animate-[spin_15s_linear_infinite]"></div>
                             <div className="relative w-full h-full rounded-full p-2 bg-white shadow-2xl shadow-blue-100/60">
                                 <img src="https://i.postimg.cc/6QdW9gtS/ab12f4-01566c8d1e0449e2ba9431fe1fe7012d-mv2.avif" alt="עידן אבוחצירה" className="w-full h-full object-cover rounded-full border-4 border-slate-50" />
-                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg border border-slate-100">
-                                    <div className="bg-blue-100 text-blue-600 rounded-full p-2"><Shield size={24} /></div>
+                                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-5 py-2 rounded-full shadow-xl border-2 border-white font-black text-sm md:text-base whitespace-nowrap z-20">
+                                    עידן אבוחצירה - מורה נהיגה
                                 </div>
                             </div>
                         </div>
@@ -284,15 +284,20 @@
 
                     {activeIndex !== null && (
                         <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4" onClick={closeLightbox} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} style={{ direction: 'rtl' }}>
-                            <button onClick={(e) => { e.stopPropagation(); closeLightbox(); }} className="absolute top-4 right-4 md:top-6 md:right-6 z-[200] p-3 rounded-full bg-black/60 hover:bg-black/80 text-white transition-all duration-200 cursor-pointer border border-white/20 shadow-lg">
-                                <X size={24} />
+                            
+                            {/* X Button - Enhanced for mobile visibility */}
+                            <button onClick={(e) => { e.stopPropagation(); closeLightbox(); }} aria-label="סגור תמונה" className="fixed top-6 right-6 md:top-8 md:right-8 z-[999] p-3 rounded-full bg-slate-800 border-2 border-white/40 text-white shadow-2xl active:scale-95 transition-all cursor-pointer">
+                                <X size={32} />
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); prevImage(); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[200] p-3 rounded-full bg-black/60 hover:bg-black/80 text-white transition-all duration-200 cursor-pointer border border-white/20 shadow-lg">
+                            
+                            <button onClick={(e) => { e.stopPropagation(); prevImage(); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[200] p-3 rounded-full bg-black/60 hover:bg-black/80 text-white transition-all duration-200 cursor-pointer border border-white/20 shadow-lg hidden md:block">
                                 <ChevronRight size={32} />
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); nextImage(); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[200] p-3 rounded-full bg-black/60 hover:bg-black/80 text-white transition-all duration-200 cursor-pointer border border-white/20 shadow-lg">
+                            
+                            <button onClick={(e) => { e.stopPropagation(); nextImage(); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[200] p-3 rounded-full bg-black/60 hover:bg-black/80 text-white transition-all duration-200 cursor-pointer border border-white/20 shadow-lg hidden md:block">
                                 <ChevronLeft size={32} />
                             </button>
+                            
                             <div className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                                 <img src={images[activeIndex]} alt={`הגדלה ${activeIndex + 1}`} className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10" />
                                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-sm font-medium">
