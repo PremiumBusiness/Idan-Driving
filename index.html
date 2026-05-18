@@ -1,496 +1,390 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { 
-  Car, Star, Shield, Clock, CheckCircle, 
-  MapPin, Phone, MessageCircle, Award, Heart, Users,
-  X, ChevronLeft, ChevronRight
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עידן אבוחצירה - מורה לנהיגה</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for in-browser JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-const GlassCard = ({ children, className = "", hover = true }) => (
-  <div className={`
-    bg-white/70 backdrop-blur-xl border border-white 
-    rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden
-    ${hover ? 'transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-200/50' : ''}
-    ${className}
-  `}>
-    {children}
-  </div>
-);
+    <style>
+        body { font-family: 'Heebo', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 selection:bg-blue-200 selection:text-blue-900 overflow-x-hidden">
+    
+    <div id="root"></div>
 
-const Button = ({ children, primary, onClick, className = "", icon: Icon, href }) => {
-  const baseStyle = `flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold transition-all duration-300 transform hover:scale-105 active:scale-95 text-lg cursor-pointer`;
-  const primaryStyle = `bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/20`;
-  const secondaryStyle = `bg-white text-slate-800 hover:bg-slate-50 border-2 border-slate-100 shadow-md shadow-slate-200/50`;
-  const whatsappStyle = `bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/20`;
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
 
-  const btnClass = `${baseStyle} ${primary ? primaryStyle : className.includes('whatsapp') ? whatsappStyle : secondaryStyle} ${className}`;
+        // --- ICONS (SVG Replacements for Lucide) ---
+        const Icon = ({ children, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
+        );
+        const Car = (p) => <Icon {...p}><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a2 2 0 0 0-1.6-.8H9.3a2 2 0 0 0-1.6.8L5 11l-5.16.86a1 1 0 0 0-.84.99V16h3m10 0a2 2 0 1 1-4 0m4 0a2 2 0 1 0-4 0m-6 0a2 2 0 1 1-4 0m4 0a2 2 0 1 0-4 0"/></Icon>;
+        const Star = (p) => <Icon {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></Icon>;
+        const Shield = (p) => <Icon {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></Icon>;
+        const Clock = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Icon>;
+        const CheckCircle = (p) => <Icon {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></Icon>;
+        const MapPin = (p) => <Icon {...p}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></Icon>;
+        const Phone = (p) => <Icon {...p}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></Icon>;
+        const MessageCircle = (p) => <Icon {...p}><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></Icon>;
+        const Award = (p) => <Icon {...p}><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></Icon>;
+        const Heart = (p) => <Icon {...p}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></Icon>;
+        const Users = (p) => <Icon {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
+        const X = (p) => <Icon {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Icon>;
+        const ChevronLeft = (p) => <Icon {...p}><polyline points="15 18 9 12 15 6"/></Icon>;
+        const ChevronRight = (p) => <Icon {...p}><polyline points="9 18 15 12 9 6"/></Icon>;
 
-  if (href) {
-    return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={btnClass}>
-        {Icon && <Icon size={22} />}
-        {children}
-      </a>
-    );
-  }
-
-  return (
-    <button onClick={onClick} className={btnClass}>
-      {Icon && <Icon size={22} />}
-      {children}
-    </button>
-  );
-};
-
-const Navbar = () => {
-  return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-4 pointer-events-none">
-      <div className="max-w-5xl mx-auto pointer-events-auto">
-        <div className="bg-white/85 backdrop-blur-xl border border-white/50 rounded-full shadow-lg shadow-slate-200/50 flex items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-inner">
-              <Car className="text-white" size={20} />
+        // --- COMPONENTS ---
+        const GlassCard = ({ children, className = "", hover = true }) => (
+            <div className={`bg-white/70 backdrop-blur-xl border border-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden ${hover ? 'transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-200/50' : ''} ${className}`}>
+                {children}
             </div>
-            <span className="text-xl font-bold text-slate-800 hidden sm:block">
-              עידן אבוחצירה
-            </span>
-          </div>
-          
-          <div className="hidden md:flex items-center gap-6 text-slate-600 font-medium">
-            <a href="#about" className="hover:text-blue-500 transition-colors">אודות</a>
-            <a href="#features" className="hover:text-blue-500 transition-colors">למה אני?</a>
-            <a href="#gallery" className="hover:text-blue-500 transition-colors">גלריה</a>
-            <a href="#reviews" className="hover:text-blue-500 transition-colors">המלצות</a>
-          </div>
+        );
 
-          <a 
-            href="#contact"
-            className="flex items-center gap-2 px-5 py-2 rounded-full bg-blue-50 text-blue-600 font-bold hover:bg-blue-100 transition-colors"
-          >
-            <Phone size={18} />
-            <span className="hidden sm:inline">צור קשר</span>
-          </a>
-        </div>
-      </div>
-    </nav>
-  );
-};
+        const Button = ({ children, primary, onClick, className = "", icon: IconComp, href }) => {
+            const baseStyle = "flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold transition-all duration-300 transform hover:scale-105 active:scale-95 text-lg cursor-pointer";
+            const primaryStyle = "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/20";
+            const secondaryStyle = "bg-white text-slate-800 hover:bg-slate-50 border-2 border-slate-100 shadow-md shadow-slate-200/50";
+            const whatsappStyle = "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/20";
 
-const HeroSection = () => {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+            const btnClass = `${baseStyle} ${primary ? primaryStyle : className.includes('whatsapp') ? whatsappStyle : secondaryStyle} ${className}`;
 
-  return (
-    <section id="about" className="relative pt-32 pb-20 px-4 min-h-[95vh] flex flex-col items-center justify-center text-center overflow-hidden bg-slate-50">
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-100/30 rounded-full blur-[100px]" />
-      </div>
+            if (href) {
+                return (
+                    <a href={href} target="_blank" rel="noopener noreferrer" className={btnClass}>
+                        {IconComp && <IconComp size={22} />}
+                        {children}
+                    </a>
+                );
+            }
 
-      <div className={`relative z-10 max-w-4xl mx-auto space-y-8 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-        
-        {/* Centered Instructor Portrait */}
-        <div className="relative w-48 h-48 md:w-56 md:h-56 mx-auto mb-6">
-          <div 
-            className="absolute inset-0 bg-gradient-to-tr from-blue-400 to-indigo-400 rounded-full opacity-25 blur-xl animate-spin" 
-            style={{ animationDuration: '15s' }}
-          />
-          <div className="relative w-full h-full rounded-full p-2 bg-white shadow-2xl shadow-blue-100/60">
-            <img 
-              src="https://i.postimg.cc/6QdW9gtS/ab12f4-01566c8d1e0449e2ba9431fe1fe7012d-mv2.avif" 
-              alt="עידן אבוחצירה - מורה נהיגה" 
-              className="w-full h-full object-cover rounded-full border-4 border-slate-50"
-            />
-            <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg border border-slate-100">
-              <div className="bg-blue-100 text-blue-600 rounded-full p-2">
-                <Shield size={24} />
-              </div>
+            return (
+                <button onClick={onClick} className={btnClass}>
+                    {IconComp && <IconComp size={22} />}
+                    {children}
+                </button>
+            );
+        };
+
+        const Navbar = () => (
+            <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-4 pointer-events-none">
+                <div className="max-w-5xl mx-auto pointer-events-auto">
+                    <div className="bg-white/85 backdrop-blur-xl border border-white/50 rounded-full shadow-lg shadow-slate-200/50 flex items-center justify-between px-6 py-3">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-inner">
+                                <Car className="text-white" size={20} />
+                            </div>
+                            <span className="text-xl font-bold text-slate-800 hidden sm:block">עידן אבוחצירה</span>
+                        </div>
+                        <div className="hidden md:flex items-center gap-6 text-slate-600 font-medium">
+                            <a href="#about" className="hover:text-blue-500 transition-colors">אודות</a>
+                            <a href="#features" className="hover:text-blue-500 transition-colors">למה אני?</a>
+                            <a href="#gallery" className="hover:text-blue-500 transition-colors">גלריה</a>
+                            <a href="#reviews" className="hover:text-blue-500 transition-colors">המלצות</a>
+                        </div>
+                        <a href="#contact" className="flex items-center gap-2 px-5 py-2 rounded-full bg-blue-50 text-blue-600 font-bold hover:bg-blue-100 transition-colors">
+                            <Phone size={18} />
+                            <span className="hidden sm:inline">צור קשר</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        );
+
+        const HeroSection = () => {
+            const [mounted, setMounted] = useState(false);
+            useEffect(() => setMounted(true), []);
+
+            return (
+                <section id="about" className="relative pt-32 pb-20 px-4 min-h-[95vh] flex flex-col items-center justify-center text-center overflow-hidden bg-slate-50">
+                    <div className="absolute inset-0 z-0 pointer-events-none">
+                        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-[120px]"></div>
+                        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-100/30 rounded-full blur-[100px]"></div>
+                    </div>
+
+                    <div className={`relative z-10 max-w-4xl mx-auto space-y-8 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                        <div className="relative w-48 h-48 md:w-56 md:h-56 mx-auto mb-6">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-blue-400 to-indigo-400 rounded-full opacity-25 blur-xl animate-[spin_15s_linear_infinite]"></div>
+                            <div className="relative w-full h-full rounded-full p-2 bg-white shadow-2xl shadow-blue-100/60">
+                                <img src="https://i.postimg.cc/6QdW9gtS/ab12f4-01566c8d1e0449e2ba9431fe1fe7012d-mv2.avif" alt="עידן אבוחצירה" className="w-full h-full object-cover rounded-full border-4 border-slate-50" />
+                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg border border-slate-100">
+                                    <div className="bg-blue-100 text-blue-600 rounded-full p-2"><Shield size={24} /></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-blue-600 text-sm font-bold mb-2">
+                            <MapPin size={16} /> מלמד באזור חיפה והסביבה
+                        </div>
+                        
+                        <h1 className="text-4xl md:text-6xl font-black text-slate-950 tracking-tight leading-tight">
+                            ללמוד לנהוג בביטחון, <br/>
+                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600">ובקצב שלך.</span>
+                        </h1>
+                        
+                        <p className="text-xl text-slate-700 max-w-2xl mx-auto leading-relaxed font-medium">
+                            נעים להכיר, אני עידן, מורה לנהיגה באזור חיפה. אצלי תמצאו שילוב של סבלנות אין-קץ, יחס אישי בגובה העיניים ושיטות לימוד מתקדמות. <br />
+                            הדרך הבטוחה שלכם לרישיון ולעצמאות מתחילה ממש כאן.
+                        </p>
+                        
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
+                            <Button className="w-full sm:w-auto whatsapp" icon={MessageCircle} href="https://wa.me/972544432229">
+                                שלחו לי הודעה בוואטסאפ
+                            </Button>
+                            <Button className="w-full sm:w-auto" icon={Phone} href="tel:0544432229">
+                                054-443-2229
+                            </Button>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const StatsSection = () => {
+            const stats = [
+                { value: '98%', label: 'מעבר טסטים', icon: CheckCircle, desc: 'אחוזי הצלחה גבוהים במיוחד' },
+                { value: '10+', label: 'שנות ניסיון', icon: Award, desc: 'ותק והיכרות מעמיקה עם הכבישים' },
+                { value: '500+', label: 'תלמידים מרוצים', icon: Users, desc: 'שכבר קיבלו את הרישיון שלהם' },
+                { value: '100%', label: 'סבלנות ויחס אישי', icon: Heart, desc: 'חווית למידה רגועה וללא לחץ' }
+            ];
+
+            return (
+                <section className="py-16 bg-white relative z-10 border-y border-slate-100">
+                    <div className="max-w-6xl mx-auto px-4">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                            {stats.map((stat, i) => (
+                                <div key={i} className="text-center p-6 rounded-2xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                                    <div className="w-12 h-12 mx-auto mb-4 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                                        <stat.icon size={24} />
+                                    </div>
+                                    <div className="text-3xl md:text-4xl font-black text-slate-900 mb-1">{stat.value}</div>
+                                    <div className="font-bold text-slate-800 text-lg mb-1">{stat.label}</div>
+                                    <div className="text-sm text-slate-500">{stat.desc}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const FeaturesSection = () => {
+            const features = [
+                { title: 'לימוד בקצב אישי', desc: 'כל תלמיד מתקדם בהתאם ליכולת ולקצב שלו. בלי לחץ, עם המון תמיכה והכלה.', icon: Clock, color: 'from-blue-500 to-cyan-500' },
+                { title: 'רכב חדיש ובטוח', desc: 'למידה על רכב מתקדם, נוח וקל לתמרון, המאובזר במערכות הבטיחות המובילות בשוק.', icon: Car, color: 'from-indigo-500 to-blue-500' },
+                { title: 'הכנה מנטלית לטסט', desc: 'אנחנו לא רק לומדים לנהוג, אלא גם עובדים על הפגת מתחים לקראת הטסט המעשי.', icon: Shield, color: 'from-purple-500 to-pink-500' },
+                { title: 'היכרות עם אזורי הטסטים', desc: 'תרגול מעשי ומקיף בכל מסלולי הטסטים הנפוצים באזור חיפה והסביבה.', icon: MapPin, color: 'from-emerald-500 to-teal-500' }
+            ];
+
+            return (
+                <section id="features" className="py-24 bg-slate-50 relative z-10">
+                    <div className="max-w-6xl mx-auto px-4">
+                        <div className="text-center mb-16">
+                            <span className="text-blue-600 font-bold uppercase tracking-wider text-sm bg-blue-50 px-4 py-1.5 rounded-full">למה ללמוד איתי?</span>
+                            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-3">סטנדרט חדש של לימוד נהיגה</h2>
+                            <p className="text-slate-600 max-w-xl mx-auto">אני מאמין שלימוד נהיגה הוא לא רק הכנה למבחן המעשי, אלא הענקת כלים לנהיגה בטוחה לכל החיים.</p>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {features.map((feature, i) => (
+                                <GlassCard key={i} className="p-8 flex gap-6 items-start">
+                                    <div className={`p-4 rounded-2xl bg-gradient-to-br ${feature.color} text-white shadow-md shrink-0`}>
+                                        <feature.icon size={26} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-xl font-bold text-slate-900">{feature.title}</h3>
+                                        <p className="text-slate-600 leading-relaxed font-medium">{feature.desc}</p>
+                                    </div>
+                                </GlassCard>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const StudentsGallery = () => {
+            const images = [
+                "https://i.postimg.cc/8cwsT3Bv/ab12f4-0114d9cee052497d83e394751f8f8dda-mv2.png", "https://i.postimg.cc/dttL5sww/ab12f4-faf843a5e27e4d1a9c924b85c4071fee-mv2.jpg", "https://i.postimg.cc/wxk15y8M/ab12f4-f2ea537d5ce345748a2beee8fc1034ac-mv2.jpg", "https://i.postimg.cc/FFxYbd5R/ab12f4-e3aef92bc68d468c924db1432f7cf36b-mv2.png", "https://i.postimg.cc/MKKv96q8/ab12f4-e19853f010aa412c85d43edaf72ca1c7-mv2.jpg", "https://i.postimg.cc/9XBDPR5V/ab12f4-dd48bd549e624765ae57329d3ba27d9e-mv2.jpg", "https://i.postimg.cc/pVBmQhbH/ab12f4-d4d0d95225164dabbd32d20642976294-mv2.jpg", "https://i.postimg.cc/c1cv7gyy/ab12f4-d2b657cd9cb740119fa3e3ceb2ef719b-mv2.png", "https://i.postimg.cc/Y2xvNGKc/ab12f4-c42157fbd53c437a868f5f83dc98b11c-mv2.jpg", "https://i.postimg.cc/G3j4P80W/ab12f4-b2265ac680774083a6a626d006b3c2f2-mv2.jpg", "https://i.postimg.cc/bYRZ0DXB/ab12f4-b0eff346addf4429ae0e5fb76f26b091-mv2.jpg", "https://i.postimg.cc/7PN51Gvc/ab12f4-a1c369aef7a34a56bf92816f3e97a053-mv2.jpg", "https://i.postimg.cc/8cwsT3BF/ab12f4-8d6f98de17394e16a5c631b05d4ce7f8-mv2.png", "https://i.postimg.cc/d3nDJXmv/ab12f4-8a610538ec48437da62829aec09e1a8c-mv2.jpg", "https://i.postimg.cc/VsFJ9ryH/ab12f4-86537570c39f45c9a0a5aed646b2b550-mv2.jpg", "https://i.postimg.cc/6qzTBSLn/ab12f4-242dd6031c6045e587052c6fa288b811-mv2.jpg", "https://i.postimg.cc/yYYkL1s6/ab12f4-2b64fd8ecb764385a959c0486eb5df4d-mv2.jpg", "https://i.postimg.cc/fTTJ8zDT/ab12f4-3d723d0dd46244478b9b63e85172ae02-mv2.jpg", "https://i.postimg.cc/441Yv7CP/ab12f4-434e45fb0676417f8fa3b16b30bfc05d-mv2.jpg", "https://i.postimg.cc/FzG1hqgz/ab12f4-54dcef865d7b404089df8d64363750f7-mv2.jpg", "https://i.postimg.cc/brLdqMHs/ab12f4-62c341fa8b7f4db2b24730e2df992b68-mv2.jpg"
+            ];
+
+            const [activeIndex, setActiveIndex] = useState(null);
+
+            const nextImage = useCallback(() => { setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1)); }, [images.length]);
+            const prevImage = useCallback(() => { setActiveIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1)); }, [images.length]);
+            const closeLightbox = useCallback(() => { setActiveIndex(null); }, []);
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (activeIndex === null) return;
+                    if (e.key === 'ArrowRight') prevImage();
+                    if (e.key === 'ArrowLeft') nextImage();
+                    if (e.key === 'Escape') closeLightbox();
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [activeIndex, nextImage, prevImage, closeLightbox]);
+
+            return (
+                <section id="gallery" className="py-24 bg-white relative z-10">
+                    <div className="max-w-7xl mx-auto px-4">
+                        <div className="text-center mb-16">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-6">
+                                <Award size={32} />
+                            </div>
+                            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">גלריית האלופים</h2>
+                            <p className="text-lg text-slate-600 font-medium max-w-2xl mx-auto">
+                                התלמידים והתלמידות שכבר יצאו לדרך עצמאית ובטוחה. רגע קבלת הרישיון הוא הרגע המרגש ביותר, והנה חלק קטן מאלו שכבר עשו את זה!
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                            {images.map((img, i) => (
+                                <div key={i} onClick={() => setActiveIndex(i)} className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer">
+                                    <img src={img} alt={`תלמיד ${i + 1}`} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-blue-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+                                        <span className="text-white font-bold bg-blue-600/80 backdrop-blur-sm px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                                            <CheckCircle size={14} /> לחצו להגדלה
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {activeIndex !== null && (
+                        <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4" onClick={closeLightbox} style={{ direction: 'rtl' }}>
+                            <button onClick={(e) => { e.stopPropagation(); closeLightbox(); }} className="absolute top-6 right-6 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer border border-white/10 shadow-lg">
+                                <X size={24} />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); prevImage(); }} className="absolute right-4 md:right-12 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer border border-white/10 shadow-lg">
+                                <ChevronRight size={32} />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); nextImage(); }} className="absolute left-4 md:left-12 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer border border-white/10 shadow-lg">
+                                <ChevronLeft size={32} />
+                            </button>
+                            <div className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                                <img src={images[activeIndex]} alt={`הגדלה ${activeIndex + 1}`} className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10" />
+                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-sm font-medium">
+                                    {activeIndex + 1} / {images.length}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </section>
+            );
+        };
+
+        const TestimonialsSection = () => (
+            <section id="reviews" className="py-24 bg-slate-100/50">
+                <div className="max-w-6xl mx-auto px-4">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">מה התלמידים מספרים</h2>
+                        <p className="text-lg text-slate-600 font-medium">אין חכם כבעל ניסיון. הנה מה שיש לבוגרים שלי להגיד.</p>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-6">
+                        {[
+                            { name: 'שירה כהן', text: 'אחרי שעברתי שני מורים שלא התחברתי אליהם, הגעתי לעידן. היחס, הסבלנות והרוגע שלו פשוט שינו לי את החוויה. עברתי טסט ראשון איתו!', role: 'טסט ראשון' },
+                            { name: 'עומר לוי', text: 'מורה תותח! מסביר הכל בצורה הכי ברורה שיש, לא מוותר על הפרטים הקטנים ובאמת אכפת לו שתהיו נהגים טובים, לא רק שתעברו טסט.', role: 'טסט שני' },
+                            { name: 'נועה דהן', text: 'הייתי בחרדות מהכביש. עידן בנה לי את הביטחון צעד אחרי צעד. השיעורים תמיד עברו בכיף ובצחוק. ממליצה בחום לכל מי שמתלבט!', role: 'טסט ראשון' },
+                        ].map((review, i) => (
+                            <GlassCard key={i} className="p-8">
+                                <div className="flex text-yellow-400 mb-4">
+                                    {[...Array(5)].map((_, j) => <Star key={j} size={20} />)}
+                                </div>
+                                <p className="text-slate-600 mb-6 leading-relaxed font-medium">"{review.text}"</p>
+                                <div className="flex items-center gap-3 border-t border-slate-100 pt-4">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-500 font-bold">
+                                        {review.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-slate-800">{review.name}</div>
+                                        <div className="text-sm text-blue-600 font-medium">{review.role}</div>
+                                    </div>
+                                </div>
+                            </GlassCard>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+
+        const ContactSection = () => (
+            <section id="contact" className="py-24">
+                <div className="max-w-4xl mx-auto px-4">
+                    <GlassCard className="p-12 text-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-none shadow-2xl shadow-blue-500/20" hover={false}>
+                        <div className="w-20 h-20 mx-auto bg-white/10 rounded-full flex items-center justify-center mb-6">
+                            <Car size={40} className="text-white" />
+                        </div>
+                        <h2 className="text-4xl font-black mb-4">מוכנים להתחיל לנהוג?</h2>
+                        <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+                            השאירו פרטים או שלחו הודעה בוואטסאפ, ואחזור אליכם בהקדם לתיאום שיעור ניסיון.
+                        </p>
+                        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+                            <Button className="w-full sm:w-auto text-lg px-10 py-4 bg-white text-blue-600 hover:bg-slate-50 border-none shadow-xl shadow-black/10" icon={Phone} href="tel:0544432229">
+                                חייגו עכשיו: 054-443-2229
+                            </Button>
+                            <Button className="w-full sm:w-auto text-lg px-10 py-4 whatsapp border-none" icon={MessageCircle} href="https://wa.me/972544432229">
+                                שלחו וואטסאפ
+                            </Button>
+                        </div>
+                    </GlassCard>
+                </div>
+            </section>
+        );
+
+        const App = () => (
+            <div className="min-h-screen flex flex-col">
+                <Navbar />
+                <main className="flex-grow">
+                    <HeroSection />
+                    <StatsSection />
+                    <FeaturesSection />
+                    <StudentsGallery />
+                    <TestimonialsSection />
+                    <ContactSection />
+                </main>
+
+                <a href="https://wa.me/972544432229" target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-2xl shadow-green-500/40 hover:bg-green-600 hover:scale-110 transition-all duration-300 cursor-pointer" aria-label="צור קשר בוואטסאפ">
+                    <MessageCircle size={32} />
+                </a>
+
+                <footer className="bg-slate-900 text-slate-400 py-12 text-center">
+                    <div className="max-w-4xl mx-auto px-4">
+                        <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-6 text-slate-300">
+                            <Car size={24} />
+                        </div>
+                        <h3 className="text-2xl font-bold text-white mb-2">עידן אבוחצירה</h3>
+                        <p className="mb-8">מורה לנהיגה שמבין אותך. הדרך לרישיון קלה יותר ממה שחשבתם.</p>
+                        <div className="flex justify-center gap-6 mb-8 text-sm font-medium">
+                            <a href="#about" className="hover:text-white transition-colors">אודות</a>
+                            <a href="#features" className="hover:text-white transition-colors">יתרונות</a>
+                            <a href="#gallery" className="hover:text-white transition-colors">גלריה</a>
+                            <a href="#reviews" className="hover:text-white transition-colors">המלצות</a>
+                            <a href="#contact" className="hover:text-white transition-colors">צור קשר</a>
+                        </div>
+                        <div className="pt-8 border-t border-slate-800 text-sm flex items-center justify-center gap-2">
+                            © {new Date().getFullYear()} כל הזכויות שמורות לעידן אבוחצירה.
+                        </div>
+                    </div>
+                </footer>
             </div>
-          </div>
-        </div>
+        );
 
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-blue-600 text-sm font-bold mb-2">
-          <MapPin size={16} /> מלמד באזור חיפה והסביבה
-        </div>
-        
-        <h1 className="text-4xl md:text-6xl font-black text-slate-950 tracking-tight leading-tight">
-          ללמוד לנהוג בביטחון, <br/>
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600">
-            ובקצב שלך.
-          </span>
-        </h1>
-        
-        <p className="text-xl text-slate-700 max-w-2xl mx-auto leading-relaxed font-medium">
-          נעים להכיר, אני עידן, מורה לנהיגה באזור חיפה. אצלי תמצאו שילוב של סבלנות אין-קץ, יחס אישי בגובה העיניים ושיטות לימוד מתקדמות. 
-          <br />
-          הדרך הבטוחה שלכם לרישיון ולעצמאות מתחילה ממש כאן.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
-          <Button 
-            className="w-full sm:w-auto whatsapp" 
-            icon={MessageCircle} 
-            href="https://wa.me/972544432229" 
-          >
-            שלחו לי הודעה בוואטסאפ
-          </Button>
-          <Button 
-            className="w-full sm:w-auto" 
-            icon={Phone}
-            href="tel:0544432229" 
-          >
-            054-443-2229
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const StatsSection = () => {
-  const stats = [
-    { value: '98%', label: 'מעבר טסטים', icon: CheckCircle, desc: 'אחוזי הצלחה גבוהים במיוחד' },
-    { value: '10+', label: 'שנות ניסיון', icon: Award, desc: 'ותק והיכרות מעמיקה עם הכבישים' },
-    { value: '500+', label: 'תלמידים מרוצים', icon: Users, desc: 'שכבר קיבלו את הרישיון שלהם' },
-    { value: '100%', label: 'סבלנות ויחס אישי', icon: Heart, desc: 'חווית למידה רגועה וללא לחץ' }
-  ];
-
-  return (
-    <section className="py-16 bg-white relative z-10 border-y border-slate-100">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, i) => (
-            <div key={i} className="text-center p-6 rounded-2xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
-              <div className="w-12 h-12 mx-auto mb-4 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
-                <stat.icon size={24} />
-              </div>
-              <div className="text-3xl md:text-4xl font-black text-slate-900 mb-1">{stat.value}</div>
-              <div className="font-bold text-slate-800 text-lg mb-1">{stat.label}</div>
-              <div className="text-sm text-slate-500">{stat.desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const FeaturesSection = () => {
-  const features = [
-    {
-      title: 'לימוד בקצב אישי',
-      desc: 'כל תלמיד מתקדם בהתאם ליכולת ולקצב שלו. בלי לחץ, עם המון תמיכה והכלה.',
-      icon: Clock,
-      color: 'from-blue-500 to-cyan-500'
-    },
-    {
-      title: 'רכב חדיש ובטוח',
-      desc: 'למידה על רכב מתקדם, נוח וקל לתמרון, המאובזר במערכות הבטיחות המובילות בשוק.',
-      icon: Car,
-      color: 'from-indigo-500 to-blue-500'
-    },
-    {
-      title: 'הכנה מנטלית לטסט',
-      desc: 'אנחנו לא רק לומדים לנהוג, אלא גם עובדים על הפגת מתחים לקראת הטסט המעשי.',
-      icon: Shield,
-      color: 'from-purple-500 to-pink-500'
-    },
-    {
-      title: 'היכרות עם אזורי הטסטים',
-      desc: 'תרגול מעשי ומקיף בכל מסלולי הטסטים הנפוצים באזור חיפה והסביבה.',
-      icon: MapPin,
-      color: 'from-emerald-500 to-teal-500'
-    }
-  ];
-
-  return (
-    <section id="features" className="py-24 bg-slate-50 relative z-10">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="text-center mb-16">
-          <span className="text-blue-600 font-bold uppercase tracking-wider text-sm bg-blue-50 px-4 py-1.5 rounded-full">למה ללמוד איתי?</span>
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-3">סטנדרט חדש של לימוד נהיגה</h2>
-          <p className="text-slate-600 max-w-xl mx-auto">
-            אני מאמין שלימוד נהיגה הוא לא רק הכנה למבחן המעשי, אלא הענקת כלים לנהיגה בטוחה לכל החיים.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          {features.map((feature, i) => (
-            <GlassCard key={i} className="p-8 flex gap-6 items-start">
-              <div className={`p-4 rounded-2xl bg-gradient-to-br ${feature.color} text-white shadow-md shrink-0`}>
-                <feature.icon size={26} />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-slate-900">{feature.title}</h3>
-                <p className="text-slate-600 leading-relaxed font-medium">{feature.desc}</p>
-              </div>
-            </GlassCard>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const StudentsGallery = () => {
-  const images = [
-    "https://i.postimg.cc/8cwsT3Bv/ab12f4-0114d9cee052497d83e394751f8f8dda-mv2.png",
-    "https://i.postimg.cc/dttL5sww/ab12f4-faf843a5e27e4d1a9c924b85c4071fee-mv2.jpg",
-    "https://i.postimg.cc/wxk15y8M/ab12f4-f2ea537d5ce345748a2beee8fc1034ac-mv2.jpg",
-    "https://i.postimg.cc/FFxYbd5R/ab12f4-e3aef92bc68d468c924db1432f7cf36b-mv2.png",
-    "https://i.postimg.cc/MKKv96q8/ab12f4-e19853f010aa412c85d43edaf72ca1c7-mv2.jpg",
-    "https://i.postimg.cc/9XBDPR5V/ab12f4-dd48bd549e624765ae57329d3ba27d9e-mv2.jpg",
-    "https://i.postimg.cc/pVBmQhbH/ab12f4-d4d0d95225164dabbd32d20642976294-mv2.jpg",
-    "https://i.postimg.cc/c1cv7gyy/ab12f4-d2b657cd9cb740119fa3e3ceb2ef719b-mv2.png",
-    "https://i.postimg.cc/Y2xvNGKc/ab12f4-c42157fbd53c437a868f5f83dc98b11c-mv2.jpg",
-    "https://i.postimg.cc/G3j4P80W/ab12f4-b2265ac680774083a6a626d006b3c2f2-mv2.jpg",
-    "https://i.postimg.cc/bYRZ0DXB/ab12f4-b0eff346addf4429ae0e5fb76f26b091-mv2.jpg",
-    "https://i.postimg.cc/7PN51Gvc/ab12f4-a1c369aef7a34a56bf92816f3e97a053-mv2.jpg",
-    "https://i.postimg.cc/8cwsT3BF/ab12f4-8d6f98de17394e16a5c631b05d4ce7f8-mv2.png",
-    "https://i.postimg.cc/d3nDJXmv/ab12f4-8a610538ec48437da62829aec09e1a8c-mv2.jpg",
-    "https://i.postimg.cc/VsFJ9ryH/ab12f4-86537570c39f45c9a0a5aed646b2b550-mv2.jpg",
-    "https://i.postimg.cc/6qzTBSLn/ab12f4-242dd6031c6045e587052c6fa288b811-mv2.jpg",
-    "https://i.postimg.cc/yYYkL1s6/ab12f4-2b64fd8ecb764385a959c0486eb5df4d-mv2.jpg",
-    "https://i.postimg.cc/fTTJ8zDT/ab12f4-3d723d0dd46244478b9b63e85172ae02-mv2.jpg",
-    "https://i.postimg.cc/441Yv7CP/ab12f4-434e45fb0676417f8fa3b16b30bfc05d-mv2.jpg",
-    "https://i.postimg.cc/FzG1hqgz/ab12f4-54dcef865d7b404089df8d64363750f7-mv2.jpg",
-    "https://i.postimg.cc/brLdqMHs/ab12f4-62c341fa8b7f4db2b24730e2df992b68-mv2.jpg"
-  ];
-
-  const [activeIndex, setActiveIndex] = useState(null);
-
-  const nextImage = useCallback(() => {
-    setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  }, [images.length]);
-
-  const prevImage = useCallback(() => {
-    setActiveIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  }, [images.length]);
-
-  const closeLightbox = useCallback(() => {
-    setActiveIndex(null);
-  }, []);
-
-  // Keyboard navigation support
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (activeIndex === null) return;
-      if (e.key === 'ArrowRight') prevImage(); // Prev for RTL
-      if (e.key === 'ArrowLeft') nextImage();  // Next for RTL
-      if (e.key === 'Escape') closeLightbox();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeIndex, nextImage, prevImage, closeLightbox]);
-
-  return (
-    <section id="gallery" className="py-24 bg-white relative z-10">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-6">
-            <Award size={32} />
-          </div>
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">גלריית האלופים</h2>
-          <p className="text-lg text-slate-600 font-medium max-w-2xl mx-auto">
-            התלמידים והתלמידות שכבר יצאו לדרך עצמאית ובטוחה. רגע קבלת הרישיון הוא הרגע המרגש ביותר, והנה חלק קטן מאלו שכבר עשו את זה!
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-          {images.map((img, i) => (
-            <div 
-              key={i} 
-              onClick={() => setActiveIndex(i)}
-              className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
-            >
-              <img 
-                src={img} 
-                alt={`תלמיד שעבר טסט - עידן אבוחצירה ${i + 1}`} 
-                loading="lazy"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
-                <span className="text-white font-bold bg-blue-600/80 backdrop-blur-sm px-3 py-1 rounded-full text-sm flex items-center gap-1">
-                  <CheckCircle size={14} /> לחצו להגדלה
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Lightbox Modal */}
-      {activeIndex !== null && (
-        <div 
-          className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4"
-          onClick={closeLightbox}
-          style={{ direction: 'rtl' }}
-        >
-          {/* Close Button - Top Right */}
-          <button 
-            onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
-            className="absolute top-6 right-6 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer border border-white/10 shadow-lg"
-            title="סגור (Esc)"
-          >
-            <X size={24} />
-          </button>
-
-          {/* Navigation Arrows */}
-          <button 
-            onClick={(e) => { e.stopPropagation(); prevImage(); }}
-            className="absolute right-4 md:right-12 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer border border-white/10 shadow-lg"
-            title="הקודם"
-          >
-            <ChevronRight size={32} />
-          </button>
-
-          <button 
-            onClick={(e) => { e.stopPropagation(); nextImage(); }}
-            className="absolute left-4 md:left-12 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer border border-white/10 shadow-lg"
-            title="הבא"
-          >
-            <ChevronLeft size={32} />
-          </button>
-
-          {/* Main Image Container */}
-          <div 
-            className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img 
-              src={images[activeIndex]} 
-              alt={`תלמיד שעבר טסט - הגדלה ${activeIndex + 1}`} 
-              className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10"
-            />
-            
-            {/* Image Counter Indicator */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-sm font-medium">
-              {activeIndex + 1} / {images.length}
-            </div>
-          </div>
-        </div>
-      )}
-    </section>
-  );
-};
-
-const TestimonialsSection = () => (
-  <section id="reviews" className="py-24 bg-slate-100/50">
-    <div className="max-w-6xl mx-auto px-4">
-      <div className="text-center mb-16">
-        <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">מה התלמידים מספרים</h2>
-        <p className="text-lg text-slate-600 font-medium">אין חכם כבעל ניסיון. הנה מה שיש לבוגרים שלי להגיד.</p>
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-6">
-        {[
-          { name: 'שירה כהן', text: 'אחרי שעברתי שני מורים שלא התחברתי אליהם, הגעתי לעידן. היחס, הסבלנות והרוגע שלו פשוט שינו לי את החוויה. עברתי טסט ראשון איתו!', role: 'טסט ראשון' },
-          { name: 'עומר לוי', text: 'מורה תותח! מסביר הכל בצורה הכי ברורה שיש, לא מוותר על הפרטים הקטנים ובאמת אכפת לו שתהיו נהגים טובים, לא רק שתעברו טסט.', role: 'טסט שני' },
-          { name: 'נועה דהן', text: 'הייתי בחרדות מהכביש. עידן בנה לי את הביטחון צעד אחרי צעד. השיעורים תמיד עברו בכיף ובצחוק. ממליצה בחום לכל מי שמתלבט!', role: 'טסט ראשון' },
-        ].map((review, i) => (
-          <GlassCard key={i} className="p-8">
-            <div className="flex text-yellow-400 mb-4">
-              {[...Array(5)].map((_, j) => <Star key={j} size={20} fill="currentColor" />)}
-            </div>
-            <p className="text-slate-600 mb-6 leading-relaxed font-medium">"{review.text}"</p>
-            <div className="flex items-center gap-3 border-t border-slate-100 pt-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-500 font-bold">
-                {review.name.charAt(0)}
-              </div>
-              <div>
-                <div className="font-bold text-slate-800">{review.name}</div>
-                <div className="text-sm text-blue-600 font-medium">{review.role}</div>
-              </div>
-            </div>
-          </GlassCard>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
-const ContactSection = () => (
-  <section id="contact" className="py-24">
-    <div className="max-w-4xl mx-auto px-4">
-      <GlassCard className="p-12 text-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-none shadow-2xl shadow-blue-500/20" hover={false}>
-        <div className="w-20 h-20 mx-auto bg-white/10 rounded-full flex items-center justify-center mb-6">
-          <Car size={40} className="text-white" />
-        </div>
-        <h2 className="text-4xl font-black mb-4">מוכנים להתחיל לנהוג?</h2>
-        <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-          השאירו פרטים או שלחו הודעה בוואטסאפ, ואחזור אליכם בהקדם לתיאום שיעור ניסיון.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          <Button 
-            className="w-full sm:w-auto text-lg px-10 py-4 bg-white text-blue-600 hover:bg-slate-50 border-none shadow-xl shadow-black/10"
-            icon={Phone}
-            href="tel:0544432229"
-          >
-            חייגו עכשיו: 054-443-2229
-          </Button>
-          <Button 
-            className="w-full sm:w-auto text-lg px-10 py-4 whatsapp border-none"
-            icon={MessageCircle}
-            href="https://wa.me/972544432229"
-          >
-            שלחו וואטסאפ
-          </Button>
-        </div>
-      </GlassCard>
-    </div>
-  </section>
-);
-
-export default function App() {
-  return (
-    <div dir="rtl" className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-200 selection:text-blue-900" style={{ fontFamily: '"Heebo", sans-serif' }}>
-      <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap');
-      `}} />
-      
-      <Navbar />
-      <main>
-        <HeroSection />
-        <StatsSection />
-        <FeaturesSection />
-        <StudentsGallery />
-        <TestimonialsSection />
-        <ContactSection />
-      </main>
-
-      {/* Floating Sticky Whatsapp Button */}
-      <a 
-        href="https://wa.me/972544432229" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-2xl shadow-green-500/40 hover:bg-green-600 hover:scale-110 transition-all duration-300 cursor-pointer"
-        aria-label="צור קשר בוואטסאפ"
-      >
-        <MessageCircle size={32} />
-      </a>
-
-      {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-12 text-center">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-6 text-slate-300">
-            <Car size={24} />
-          </div>
-          <h3 className="text-2xl font-bold text-white mb-2">עידן אבוחצירה</h3>
-          <p className="mb-8">מורה לנהיגה שמבין אותך. הדרך לרישיון קלה יותר ממה שחשבתם.</p>
-          
-          <div className="flex justify-center gap-6 mb-8 text-sm font-medium">
-            <a href="#about" className="hover:text-white transition-colors">אודות</a>
-            <a href="#features" className="hover:text-white transition-colors">יתרונות</a>
-            <a href="#gallery" className="hover:text-white transition-colors">גלריה</a>
-            <a href="#reviews" className="hover:text-white transition-colors">המלצות</a>
-            <a href="#contact" className="hover:text-white transition-colors">צור קשר</a>
-          </div>
-          
-          <div className="pt-8 border-t border-slate-800 text-sm flex items-center justify-center gap-2">
-            © {new Date().getFullYear()} כל הזכויות שמורות לעידן אבוחצירה.
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
