@@ -19,6 +19,10 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
+        html { 
+            scroll-behavior: smooth; /* הוספת אנימציית גלילה חלקה */
+            scroll-padding-top: 100px; /* מניעת הסתרת הכותרת על ידי התפריט הצף */
+        }
         body { font-family: 'Heebo', sans-serif; }
     </style>
 </head>
@@ -96,7 +100,7 @@
                             <a href="#gallery" className="hover:text-blue-500 transition-colors">גלריה</a>
                             <a href="#reviews" className="hover:text-blue-500 transition-colors">המלצות</a>
                         </div>
-                        <a href="#contact" className="flex items-center gap-2 px-5 py-2 rounded-full bg-blue-50 text-blue-600 font-bold hover:bg-blue-100 transition-colors">
+                        <a href="tel:0544432229" className="flex items-center gap-2 px-5 py-2 rounded-full bg-blue-50 text-blue-600 font-bold hover:bg-blue-100 transition-colors">
                             <Phone size={18} />
                             <span className="hidden sm:inline">צור קשר</span>
                         </a>
@@ -222,10 +226,24 @@
             ];
 
             const [activeIndex, setActiveIndex] = useState(null);
+            const [touchStart, setTouchStart] = useState(null);
+            const [touchEnd, setTouchEnd] = useState(null);
 
             const nextImage = useCallback(() => { setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1)); }, [images.length]);
             const prevImage = useCallback(() => { setActiveIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1)); }, [images.length]);
             const closeLightbox = useCallback(() => { setActiveIndex(null); }, []);
+
+            const onTouchStart = (e) => {
+                setTouchEnd(null);
+                setTouchStart(e.targetTouches[0].clientX);
+            };
+            const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+            const onTouchEnd = () => {
+                if (!touchStart || !touchEnd) return;
+                const distance = touchStart - touchEnd;
+                if (distance > 50) nextImage();
+                if (distance < -50) prevImage();
+            };
 
             useEffect(() => {
                 const handleKeyDown = (e) => {
@@ -265,14 +283,14 @@
                     </div>
 
                     {activeIndex !== null && (
-                        <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4" onClick={closeLightbox} style={{ direction: 'rtl' }}>
-                            <button onClick={(e) => { e.stopPropagation(); closeLightbox(); }} className="absolute top-6 right-6 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer border border-white/10 shadow-lg">
+                        <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4" onClick={closeLightbox} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} style={{ direction: 'rtl' }}>
+                            <button onClick={(e) => { e.stopPropagation(); closeLightbox(); }} className="absolute top-4 right-4 md:top-6 md:right-6 z-[200] p-3 rounded-full bg-black/60 hover:bg-black/80 text-white transition-all duration-200 cursor-pointer border border-white/20 shadow-lg">
                                 <X size={24} />
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); prevImage(); }} className="absolute right-4 md:right-12 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer border border-white/10 shadow-lg">
+                            <button onClick={(e) => { e.stopPropagation(); prevImage(); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[200] p-3 rounded-full bg-black/60 hover:bg-black/80 text-white transition-all duration-200 cursor-pointer border border-white/20 shadow-lg">
                                 <ChevronRight size={32} />
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); nextImage(); }} className="absolute left-4 md:left-12 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer border border-white/10 shadow-lg">
+                            <button onClick={(e) => { e.stopPropagation(); nextImage(); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[200] p-3 rounded-full bg-black/60 hover:bg-black/80 text-white transition-all duration-200 cursor-pointer border border-white/20 shadow-lg">
                                 <ChevronLeft size={32} />
                             </button>
                             <div className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
@@ -333,8 +351,11 @@
                             השאירו פרטים או שלחו הודעה בוואטסאפ, ואחזור אליכם בהקדם לתיאום שיעור ניסיון.
                         </p>
                         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                            <Button className="w-full sm:w-auto text-lg px-10 py-4 bg-white text-blue-600 hover:bg-slate-50 border-none shadow-xl shadow-black/10" icon={Phone} href="tel:0544432229">
-                                חייגו עכשיו: 054-443-2229
+                            <Button className="w-full sm:w-auto text-lg px-8 py-4 bg-white text-blue-600 hover:bg-slate-50 border-none shadow-xl shadow-black/10" icon={Phone} href="tel:0544432229">
+                                <div className="flex flex-col sm:flex-row items-center sm:gap-2">
+                                    <span>חייגו עכשיו:</span>
+                                    <span dir="ltr">054-443-2229</span>
+                                </div>
                             </Button>
                             <Button className="w-full sm:w-auto text-lg px-10 py-4 whatsapp border-none" icon={MessageCircle} href="https://wa.me/972544432229?text=%D7%A9%D7%9C%D7%95%D7%9D%20%D7%A2%D7%99%D7%93%D7%9F%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%93%D7%A8%D7%9A%20%D7%94%D7%90%D7%AA%D7%A8.%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A4%D7%A8%D7%98%D7%99%D7%9D%20%D7%A0%D7%95%D7%A1%D7%A4%D7%99%D7%9D%20%D7%A2%D7%9C%20%D7%A9%D7%99%D7%A2%D7%95%D7%A8%D7%99%20%D7%A0%D7%94%D7%99%D7%92%D7%94!">
                                 שלחו וואטסאפ
